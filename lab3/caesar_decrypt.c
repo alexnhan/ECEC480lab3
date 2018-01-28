@@ -7,13 +7,14 @@
 char cshift(char c, int n_shift, char base);
 
 int main(int argc, char** argv) {
-    if(argc != 3) {
-        printf("Usage: ./caesar_decrypt <\"message\"> <num_shift>\n");
+    if(argc != 2) {
+        printf("Usage: ./caesar_decrypt <num_shift>\n");
         exit(1);
     }
 
-    char* word = argv[1];
-    int num_shift = atoi(argv[2]);
+    char word[128];
+    read(0, word, 128);
+    int num_shift = atoi(argv[1]);
 
     if(num_shift < 0) {
         printf("<num_shift> must be positive.\n");
@@ -22,7 +23,8 @@ int main(int argc, char** argv) {
 
     unsigned int word_len = strlen(word);
     char c;
-    for(unsigned int i=0; i<word_len; i++) {
+    unsigned int i;
+    for(i=0; i<word_len; i++) {
         c = word[i];
         if(c >= 'A' && c <= 'Z') {
             word[i] = cshift(c, num_shift, 'A');

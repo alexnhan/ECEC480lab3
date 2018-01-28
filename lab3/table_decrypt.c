@@ -6,16 +6,13 @@
 static char lookup(char c, char base);
 
 int main(int argc, char** argv) {
-    if(argc != 2) {
-        printf("Usage: ./table_decrypt <\"message\">\n");
-        exit(1);
-    }
-
-    char* word = argv[1];
+    char word[128];
+    read(0,word,128);
 
     unsigned int word_len = strlen(word);
     char c;
-    for(unsigned int i=0; i<word_len; i++) {
+    unsigned int i;
+    for(i=0; i<word_len; i++) {
         c = word[i];
         if(c >= 'A' && c <= 'Z') {
             word[i] = lookup(c, 'A');

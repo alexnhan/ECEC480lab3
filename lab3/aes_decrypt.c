@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 typedef uint8_t state_t[4][4];
@@ -22,16 +23,20 @@ static void phex(uint8_t* str)
 }
 
 int main(int argc, char** argv) {
-    if(argc != 2) {
-        printf("Usage: ./aes_decrypt <\"encrypted string\">\n");
-        exit(1);
-    }
-    char* word = argv[1];
+    char word[128];
+    read(0,word,128);
 
-    uint8_t in[16] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-    for(unsigned int i=0; i<16; i++) {
+    uint8_t in[17] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+    uint8_t hex_p;
+    uint8_t i,j=0;
+    for(i=0; i<32; j++,i+=2) {
         if(i < strlen(word)) {
-            in[i] = (uint8_t)word[i];
+            char hex_word[3];
+            for(hex_p = 0; hex_p < 2; hex_p++) {
+                hex_word[hex_p] = word[i+hex_p];
+            }
+            hex_word[2] = '\0';
+            in[j] = (uint8_t)strtoul(hex_word, NULL, 16);
         }
         else {
             break;
@@ -40,9 +45,10 @@ int main(int argc, char** argv) {
 
     uint8_t RoundKey[176];
     KeyExpansion(RoundKey, key);
-
     InvCipher((state_t*)in, RoundKey);
-    phex(in);
+    in[16] = '\0';
+    printf("%s\n",(char*)in);
+//    phex(in);
 
     return 0;
 }
