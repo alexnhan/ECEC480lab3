@@ -13,8 +13,6 @@ unsigned char checkKeyStrength(const unsigned char* key) {
     return 1;
 }
 
-static unsigned char *key; // will be allocated to the number of subcarriers
-static float **CTI; // channel trend information
 int rxCallback(
         unsigned char *  _header,
         int              _header_valid,
@@ -31,13 +29,12 @@ int rxCallback(
     static const unsigned int N = 10; // confidence constant
     static unsigned char b_init = 0; // bool value to initialize the key and CTI
     static unsigned int p_idx = 0; // keeps track of which packet we are on
+    static unsigned char key[1000]; // 1000 arbitrarily chosen to be greater than M
+    static float CTI[2*N][1000];
 
     // Initialize the key to all 0's
     if(!b_init) {
-	key = (unsigned char*)malloc((M+1)*sizeof(unsigned char));
-	memset(key, '0', M*sizeof(unsigned char));
-	key[M] = '\0';
-	CTI = (float**)calloc(2*N*M, sizeof(float));
+	memset(key, '\0', 1000*sizeof(unsigned char));
 	b_init = 1;
     }
 
@@ -59,6 +56,7 @@ int rxCallback(
                 unsigned int num_written = ext_net_ptr->tt->cwrite((char*)(_payload+ext_mp_ptr->padded_bytes),packet_length);
                 unsigned int packet_id = (_header[2] << 8) | _header[3];
 		unsigned int loop, i, j;
+		FILE* fp = fopen("generated_keys.txt", "a");
                 //printf("Written %u bytes (PID %u) from %u",num_written,packet_id,source_id);
                 if(M>0)
                 {
@@ -70,7 +68,7 @@ int rxCallback(
 		    if(p_idx == 2*N) {
 			// Play the game to generate the key
 			unsigned int temp;
-			for(i=0; i<M; i++) {
+			for(i=0; i<240; i++) {
 			    temp = 0;
 			    for(j=1; j<2*N; j++) {
 				if(CTI[j][i] > CTI[j-1][i]) {
@@ -85,7 +83,8 @@ int rxCallback(
 			    }
 			}
 			if(checkKeyStrength(key)) {
-			    printf("key: %s\n", key);
+			    printf("Key generated\n");
+			    fprintf(fp, "%s\n", key);
 			}
 			p_idx = 0;
 		    }
@@ -94,6 +93,7 @@ int rxCallback(
                 {
                     printf("\n");
                 }
+		fclose(fp);
             }
             else
             {
